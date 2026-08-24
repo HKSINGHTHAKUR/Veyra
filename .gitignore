@@ -54,3 +54,7 @@ veyra.png
 
 # ── Figma export source (reference only, not part of the Veyra application) ──
 Build this feature/
+
+# ── Local database backups (never commit dumps) ───────────────────────────────
+db-backup/
+*.dump

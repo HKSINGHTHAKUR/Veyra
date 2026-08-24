@@ -1,0 +1,35 @@
+# Environment secrets — never build into the image
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Maven build output
+target/
+**/target/
+
+# Logs / test reports
+logs/
+*.log
+surefire-reports/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Git
+.git/
+.gitignore
+
+# Local database backups (never include dumps)
+db-backup/
+*.dump
+
+# Node (if ever present in this directory)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
