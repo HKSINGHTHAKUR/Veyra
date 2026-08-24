@@ -1,0 +1,70 @@
+/* ---------------------------------------------------------------------------
+ * Veyra landing page styles — scoped to .landing-page to avoid collisions
+ * with the clinical-blue application design system.
+ * ------------------------------------------------------------------------- */
+
+/* CSS variables consumed by landing components via inline styles */
+:root {
+  --color-ink: #0b1512;
+  --color-ink-soft: #47554f;
+  --color-ink-faint: #7b8781;
+  --color-paper: #ffffff;
+  --color-mist: #f4f6f5;
+  --color-mist-2: #eef1f0;
+  --color-line: #e2e7e5;
+  --color-teal: #0e7c66;
+  --color-teal-deep: #0a5b4b;
+  --color-teal-wash: #e7f2ef;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes draw-line {
+  from { stroke-dashoffset: var(--dash, 200); }
+  to { stroke-dashoffset: 0; }
+}
+
+.landing-page .reveal {
+  opacity: 0;
+}
+.landing-page .reveal.is-in {
+  animation: reveal-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.landing-page .float-soft {
+  animation: float-soft 6s ease-in-out infinite;
+}
+.landing-page .float-soft-slow {
+  animation: float-soft 8s ease-in-out infinite;
+}
+
+.landing-page ::selection {
+  background: var(--color-teal);
+  color: #fff;
+}
+
+/* thin, transparent scrollbars on landing page only */
+.landing-page * {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.landing-page *:hover {
+  scrollbar-color: var(--color-line) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-page .reveal { opacity: 1 !important; animation: none !important; }
+  .landing-page .float-soft, .landing-page .float-soft-slow { animation: none !important; }
+}

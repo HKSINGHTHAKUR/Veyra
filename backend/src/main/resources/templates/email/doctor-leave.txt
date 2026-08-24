@@ -1,0 +1,2 @@
+Subject: Doctor Leave
+Body: Doctor {{doctor}} unavailable on {{date}}

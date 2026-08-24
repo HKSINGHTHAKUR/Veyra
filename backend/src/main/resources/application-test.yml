@@ -1,0 +1,51 @@
+spring:
+  flyway:
+    enabled: false
+
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  mail:
+    host: localhost
+    port: 3025
+    username: test
+    password: test
+
+app:
+  jwt:
+    secret: test-secret-key-for-unit-tests-must-be-at-least-256-bits-long-abcdef
+    expiration-ms: 3600000
+
+  ai:
+    openai:
+      api-key: test-key
+      timeout-seconds: 5
+
+  google:
+    calendar:
+      client-id: test-client-id
+      client-secret: test-client-secret
+      redirect-uri: http://localhost:8080/api/calendar/callback
+      max-retries: 3
+      worker-batch-size: 10
+      worker-interval-ms: 600000
+
+  slot:
+    hold-duration-minutes: 5
+
+  notifications:
+    max-retries: 3
+    worker-batch-size: 10
+    worker-interval-ms: 600000
+    reminder-interval-ms: 600000
+    reminder-window-minutes: 60

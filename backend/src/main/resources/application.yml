@@ -1,0 +1,101 @@
+spring:
+  application:
+    name: healthcare-appointment-manager
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/healthcare_appointments}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  flyway:
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+app:
+  seed:
+    # SAFE DEFAULT: development accounts are NOT created unless explicitly enabled
+    enabled: ${APP_SEED_ENABLED:false}
+
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+      model: ${OPENAI_MODEL:gpt-4o-mini}
+      timeout-seconds: ${OPENAI_TIMEOUT_SECONDS:30}
+
+  google:
+    calendar:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+      redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/api/calendar/callback}
+      scope: https://www.googleapis.com/auth/calendar.events
+      max-retries: ${GOOGLE_CALENDAR_MAX_RETRIES:3}
+      worker-batch-size: ${GOOGLE_CALENDAR_BATCH_SIZE:20}
+      worker-interval-ms: ${GOOGLE_CALENDAR_WORKER_INTERVAL_MS:60000}
+
+  slot:
+    hold-duration-minutes: ${SLOT_HOLD_DURATION_MINUTES:10}
+
+  notifications:
+    max-retries: ${NOTIFICATION_MAX_RETRIES:3}
+    worker-batch-size: ${NOTIFICATION_BATCH_SIZE:20}
+    worker-interval-ms: ${NOTIFICATION_WORKER_INTERVAL_MS:30000}
+    reminder-interval-ms: ${NOTIFICATION_REMINDER_INTERVAL_MS:60000}
+    reminder-window-minutes: ${NOTIFICATION_REMINDER_WINDOW_MINUTES:60}
+
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5173}
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    com.healthcare.appointment: INFO
+    org.springframework.security: WARN

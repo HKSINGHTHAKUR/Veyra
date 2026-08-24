@@ -1,0 +1,2 @@
+Subject: Reminder
+Body: Reminder for appointment {{time}}

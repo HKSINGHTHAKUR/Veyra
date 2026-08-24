@@ -1,0 +1,2 @@
+Subject: Cancelled
+Body: Cancelled {{time}}

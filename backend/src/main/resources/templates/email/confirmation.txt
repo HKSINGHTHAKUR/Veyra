@@ -1,0 +1,2 @@
+Subject: Appointment Confirmed
+Body: Hello {{name}}, your appointment with Dr. {{doctor}} on {{time}} is confirmed.

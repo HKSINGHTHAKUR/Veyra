@@ -1,0 +1,56 @@
+# ── Java / Maven ─────────────────────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+hs_err_pid*
+.mvn/timing.properties
+!.mvn/wrapper/maven-wrapper.jar
+!backend/.mvn/wrapper/maven-wrapper.jar
+
+# ── Environment variables ─────────────────────────────────────────────────────
+.env
+.env.*
+**/.env
+**/.env.*
+backend/.env
+frontend/.env
+# Keep the safe placeholder templates trackable
+!.env.example
+!**/.env.example
+
+# ── IDEs ─────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Local development tools / environment (never commit) ─────────────────────
+.tools/
+jdk21/
+
+# ── QA / generated artifacts (keep on disk, do not commit) ───────────────────
+qa-*.png
+e2e-output.txt
+veyra.png
+
+# ── Figma export source (reference only, not part of the Veyra application) ──
+Build this feature/
