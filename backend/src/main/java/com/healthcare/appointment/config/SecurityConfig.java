@@ -51,7 +51,8 @@ public class SecurityConfig {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+                    // Actuator health endpoints must be reachable by Render without a JWT.
+                    .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
                     // Google redirects the browser here WITHOUT a JWT; the request is
                     // authenticated server-side by consuming a single-use random state
                     // bound to the initiating user (see CalendarService.consumeState).

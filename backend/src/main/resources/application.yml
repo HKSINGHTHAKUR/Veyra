@@ -95,6 +95,14 @@ management:
   endpoint:
     health:
       show-details: never
+      probes:
+        enabled: true
+  health:
+    # The SMTP health probe is a TCP connectivity check only; it must not take
+    # the whole application DOWN when the mail host is unreachable (e.g. egress
+    # from Render). SMTP sending via JavaMailSender is unaffected.
+    mail:
+      enabled: false
 
 logging:
   level:
