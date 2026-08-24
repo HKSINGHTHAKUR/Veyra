@@ -1,216 +1,303 @@
-# Healthcare Appointment & Follow-up Manager
+# Veyra — Healthcare Appointment & Follow-up Manager
 
-A full-stack application for managing healthcare appointments, doctor schedules,
-patient records, AI-assisted pre/post-visit summaries, notifications, and Google
-Calendar synchronisation.
+A full-stack healthcare appointment platform that connects patients, doctors, and administrators through the complete appointment lifecycle — discovery, booking, consultation, prescriptions, and AI-assisted pre/post-visit summaries.
 
-> **Status:** Active development — see phase progress below.
+## 🚀 Live Demo & Demo Accounts
 
-## Tech Stack
+> **Demo:** Run the application locally using the setup instructions below.
 
-| Layer    | Technology                                      |
-|----------|-------------------------------------------------|
-| Backend  | Java 21, Spring Boot 3.2, Spring Security, JPA  |
-| Database | PostgreSQL                                      |
-| Auth     | JWT (RS-256 / HS-256)                           |
-| AI       | OpenAI API (gpt-4o-mini)                        |
-| Calendar | Google Calendar API (OAuth 2.0)                 |
-| Email    | Spring Mail (SMTP)                              |
-| Frontend | React 18, Vite, React Router, Axios, Tailwind   |
+| Role | Email | Password | What to explore |
+|------|-------|----------|-----------------|
+| Patient | `patient@healthcare.dev` | `Patient@Dev1` | Book, view, reschedule and cancel appointments; view AI summaries |
+| Doctor | `doctor@healthcare.dev` | `Doctor@Dev1` | View appointments, conduct consultation, add prescriptions, view/generate post-visit AI |
+| Admin | `admin@healthcare.dev` | `Admin@Dev1` | Manage doctors, working hours, leaves and administrative controls |
+
+> These are demo credentials intended for evaluating the application. Do not use them for production.
+
+Demo accounts are seeded automatically on startup when `APP_SEED_ENABLED=true` (local development only).
+
+---
+
+## 🎯 Quick Recruiter Walkthrough
+
+**Patient**
+
+1. Login as patient.
+2. Browse doctors.
+3. Check doctor availability.
+4. Select an available appointment slot.
+5. Enter symptoms / reason for visit.
+6. Confirm appointment.
+7. Open appointment details.
+8. View the pre-visit AI summary.
+9. Try rescheduling.
+10. Try cancellation.
+
+**Doctor**
+
+1. Login as doctor.
+2. Open appointments.
+3. Open the patient's appointment.
+4. Complete the consultation.
+5. Add clinical notes.
+6. Add a prescription.
+7. Generate/view the post-visit AI summary.
+
+**Admin**
+
+1. Login as admin.
+2. Open doctor management.
+3. View/manage doctors.
+4. Configure working hours.
+5. Manage doctor leaves / availability.
+
+---
+
+## Project Overview
+
+Veyra is a healthcare appointment management platform connecting:
+
+```
+Patient → Doctor → Admin
+```
+
+It handles the complete appointment lifecycle:
+
+```
+Doctor discovery → Availability → Slot hold → Symptoms/reason → Booking
+→ Pre-visit AI → Consultation → Prescription → Post-visit AI
+→ Reschedule / Cancellation
+```
+
+---
+
+## Key Features
+
+### Patient
+
+- Patient registration / login
+- Browse doctors
+- Doctor availability
+- Appointment slot selection
+- Temporary slot holding
+- Appointment booking
+- Symptoms / reason for visit
+- Appointment history & details
+- Rescheduling & cancellation
+- Pre-visit & post-visit AI summaries
+- Prescription / medication visibility
+- Patient-specific access control
+
+### Doctor
+
+- Doctor authentication
+- Appointment dashboard
+- View assigned appointments
+- Patient appointment details
+- Consultation creation
+- Clinical notes & follow-up instructions
+- Prescription creation
+- Post-visit AI summary
+
+### Admin
+
+- Admin authentication
+- Doctor management
+- Working hours
+- Doctor leaves
+- Availability management
+- Role-based access control
+
+### AI (Assistive Summarization)
+
+- **Pre-visit AI** — converts the patient's symptoms / reason for visit into a structured preparation summary, including chief complaint, urgency, and suggested questions.
+- **Post-visit AI** — uses the completed consultation to generate a patient-facing follow-up summary, including relevant medication information and follow-up steps.
+
+> AI is an assistive summarization feature and is not intended to replace clinical judgment or provide autonomous medical diagnosis.
+
+---
+
+## Appointment Safety & Slot Management
+
+1. Patient selects a doctor and slot.
+2. The slot can be temporarily held.
+3. The backend validates availability.
+4. Conflicting active holds/appointments are rejected.
+5. Booking confirmation converts a valid hold into an appointment.
+6. Expired holds are handled.
+7. Rescheduling re-validates availability.
+8. Cancellation releases the slot.
+
+The backend uses PostgreSQL partial unique indexes and transactional validation to prevent double-booking and concurrent slot conflicts.
+
+---
+
+## Security / RBAC
+
+- JWT-based authentication
+- Role-based authorization (PATIENT / DOCTOR / ADMIN)
+- Ownership checks for appointments, holds, and consultations
+- Protected doctor/admin endpoints
+- Passwords hashed (BCrypt)
+- Secrets loaded via environment variables only
+- Unauthorized users cannot access protected resources
+
+---
+
+## Notifications
+
+The application contains a notification architecture for events such as:
+
+- Booking confirmation
+- Rescheduling
+- Cancellation
+- Medication reminders
+- Doctor-leave notifications
+
+Lifecycle: `PENDING → PROCESSING → SENT / FAILED` with retry/backoff.
+
+> **Note:** Production email delivery is currently not a verified live feature in the deployed environment. The notification architecture is fully implemented, but live email transport depends on the deployment's outbound email configuration.
+
+---
+
+## Technology Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18, Vite, React Router, Axios, Tailwind CSS |
+| Backend | Java 21, Spring Boot 3.2, Spring Security, Spring Data JPA |
+| Database | PostgreSQL (Flyway migrations) |
+| Authentication | JWT, BCrypt |
+| AI | Gemini (OpenAI-compatible endpoint) |
+| Calendar | Google Calendar API (OAuth 2.0) |
+| Notifications | Background worker + `EmailService` abstraction |
+| Testing | JUnit / Spring Boot Test |
+| Build / Deploy | Maven (backend), npm / Vite (frontend); Render (backend), Vercel (frontend), Supabase (PostgreSQL) |
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TB
+    U["Patient / Doctor / Admin"]
+    U --> FE["React Frontend"]
+    FE --> API["REST API"]
+    API --> BE["Spring Boot Backend"]
+    BE --> SVC["Service Layer"]
+    SVC --> DB[("PostgreSQL")]
+    SVC --> AI["AI (Gemini)"]
+    SVC --> CAL["Google Calendar"]
+    SVC --> NOTIF["Notifications"]
+```
+
+---
 
 ## Project Structure
 
 ```
 healthcare-appointment-manager/
-├── backend/          # Spring Boot Maven project
-│   └── src/
-│       ├── main/java/com/healthcare/appointment/
-│       │   ├── config/
-│       │   ├── controller/
-│       │   ├── dto/
-│       │   ├── entity/
-│       │   ├── exception/
-│       │   ├── repository/
-│       │   ├── security/
-│       │   ├── service/
-│       │   ├── integration/
-│       │   │   ├── ai/
-│       │   │   ├── email/
-│       │   │   └── calendar/
-│       │   └── scheduler/
-│       └── main/resources/
-└── frontend/         # React + Vite project
-    └── src/
-        ├── components/
-        ├── context/
-        ├── hooks/
-        ├── layouts/
-        ├── pages/
-        │   ├── admin/
-        │   ├── auth/
-        │   ├── doctor/
-        │   └── patient/
-        ├── routes/
-        ├── services/
-        └── utils/
+├── backend/          # Spring Boot (Java 21, Maven)
+├── frontend/         # React + Vite
+├── docs/             # Engineering documentation
+└── README.md
 ```
 
-## Prerequisites
+- `backend/` — Spring Boot application: controllers, services, JPA entities, Flyway migrations, Spring Security, AI / email / calendar integrations, background schedulers.
+- `frontend/` — React SPA: role-based portals (patient / doctor / admin), auth context, API client, Tailwind design system.
+- `docs/` — detailed engineering documentation (architecture, database, API, booking concurrency, notifications, Google Calendar, LLM / AI).
 
-- Java 21+
-- Maven 3.9+
-- Node.js 20+
-- PostgreSQL 15+
+---
 
 ## Local Setup
 
-### 1. Database
+### Backend
 
-```sql
-CREATE DATABASE healthcare_appointments;
-```
-
-### 2. Backend
+- Java 21+, Maven 3.9+
+- Start PostgreSQL
+- Configure `backend/.env` (copy from `backend/.env.example`)
 
 ```bash
 cd backend
-cp .env.example .env        # fill in your values
-mvn spring-boot:run
+cp .env.example .env   # fill in your values
+./mvnw spring-boot:run # or mvnw.cmd on Windows
 ```
 
-The API runs on **http://localhost:8080**.
+API runs on **http://localhost:8080**.
 
-### 3. Frontend
+### Frontend
 
 ```bash
 cd frontend
-cp .env.example .env
 npm install
 npm run dev
 ```
 
-The UI runs on **http://localhost:5173**.
+UI runs on **http://localhost:5173**.
 
-## Environment Variables
+### Environment Variables
 
-See `backend/.env.example` and `frontend/.env.example` for the full list.
-Never commit `.env` files — they are in `.gitignore`.
+See `backend/.env.example` and `frontend/.env.example` for the full list. Placeholders only:
 
-## Build
-
-```bash
-# Backend
-cd backend && mvn clean package
-
-# Frontend
-cd frontend && npm run build
+```
+DATABASE_URL=...
+JWT_SECRET=...
+OPENAI_API_KEY=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+MAIL_USERNAME=...
+MAIL_PASSWORD=...
 ```
 
-## Phase Progress
+`.env` files are gitignored and must never be committed.
 
-| Phase | Description                          | Status      |
-|-------|--------------------------------------|-------------|
-| 0     | Repository setup                     | ✅ Complete |
-| 1     | Database + entities (Flyway V1, UTC) | ✅ Complete |
-| 2     | Authentication + RBAC (JWT, BCrypt)  | ✅ Complete |
-| 3     | Doctor management + availability     | ✅ Complete |
-| 4     | Appointment booking + concurrency    | ✅ Complete |
-| 5     | Symptoms + pre-visit AI              | ✅ Complete (pre-visit urgency/chief/3 questions, failure isolation, no LLM creds needed) |
-| 6     | Consultation + prescription + AI     | ✅ Complete (consultation, prescription, post-visit summary/meds/follow-up, DB authoritative) |
-| 7     | Notifications + background jobs      | ✅ Complete (confirmation/cancellation/reschedule/reminder/leave, PENDING→PROCESSING→SENT/FAILED, retry 3, backoff, worker, no SMTP in tx) |
-| 8     | Google Calendar integration          | ✅ Complete (OAuth 2.0 connect/callback/status/disconnect, background event create/update/delete, bounded retries, failure isolation, fake client tests) |
-| 9     | Frontend                             | ⬜ Pending  |
-| 10    | Testing + integration + polish       | ⬜ Pending  |
-| 11    | Documentation                        | ✅ Complete (docs/ updated for notifications) |
-| 12    | Deployment preparation               | ⬜ Pending  |
+---
 
-## Current Features (Notification Phase)
+## Database / Seed Data
 
-- JWT auth (PATIENT/DOCTOR/ADMIN), registration, login, RBAC
-- Admin doctor CRUD, working hours, leaves
-- Patient doctor search (specialisation, active only), profile view
-- Dynamic availability (workingHours - leave - BOOKED/RESCHEDULED - ACTIVE holds - past) with grid validation
-- Booking engine: `POST /api/appointments/hold` → `POST /{holdId}/symptoms` → `POST /{holdId}/confirm` → BOOKED, hold CONVERTED
-- Appointment ownership (patient own, doctor own, admin), cancellation, rescheduling (safe, original preserved on 409)
-- Hold expiry scheduler (60s) and inline expiry handling, notification records (PENDING)
-- Double-booking protection via partial unique indexes + 409 mapping, concurrency tests
-- AI pre-visit: urgency (LOW/MEDIUM/HIGH), chief complaint, exactly 3 questions (validated, `PRE_VISIT_V1`), `AFTER_COMMIT` event, no booking rollback on LLM failure
-- AI post-visit: patient-friendly summary, medication schedule (DB authoritative), follow-up steps (validated, `POST_VISIT_V1`), consultation triggers, no invented meds
-- AI failure handling: `PENDING→COMPLETED/FAILED`, `FAILED` with `failureReason`, timeout, duplicate prevention via `uq_ai_appointment_type`, no secrets hardcoded
-- Notifications: `BOOKING_CONFIRMATION`/`CANCELLATION`/`RESCHEDULE`/`APPOINTMENT_REMINDER` (24h window, idempotent)/`DOCTOR_LEAVE` (future affected only, past/unaffected ignored), `PENDING→PROCESSING→SENT/FAILED`, `EmailService` abstraction (`Smtp` vs `Fake`), `EmailTemplateService`, `NotificationProcessor` (claim `PENDING`/`FAILED`→`PROCESSING`, `max-retries 3`, backoff 1/5/15 min, `worker-batch 20`, `attemptCount`/`failureReason`/`sentAt`), `ReminderScheduler` (24h ±30m), no email in booking tx, ownership via `CurrentUserService`
-- Google Calendar: OAuth 2.0 (`/api/calendar/connect|callback|status|disconnect`, state-validated, tokens never exposed/logged), background sync worker creates/updates/deletes events from DB state (idempotent, bounded retries, backoff), failure isolation – appointment never depends on Google availability, event content contains scheduling facts only (no clinical data), UTC RFC-3339
+The backend uses Flyway migrations (V1–V6) to create the schema. In local development, setting `APP_SEED_ENABLED=true` seeds the demo accounts:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Patient | `patient@healthcare.dev` | `Patient@Dev1` |
+| Doctor | `doctor@healthcare.dev` | `Doctor@Dev1` |
+| Admin | `admin@healthcare.dev` | `Admin@Dev1` |
+
+---
+
+## Testing
+
+The backend test suite has **137 passing tests**, covering authentication, availability, doctor management, appointment booking, slot concurrency, AI summaries, notifications, Google Calendar, and application context. Tests use an in-memory H2 database and fake clients for external integrations (AI / email / calendar).
+
+```bash
+cd backend
+./mvnw test
+```
+
+---
 
 ## Documentation
 
 | Doc | Content |
 |-----|---------|
-| [architecture.md](docs/architecture.md) | Layers, modules, AI, structure |
-| [database.md](docs/database.md) | Tables, V2/V3 migrations, indexes, time zone |
-| [api.md](docs/api.md) | All endpoints (incl. AI/consultation), auth, errors |
-| [booking-concurrency.md](docs/booking-concurrency.md) | Holds, unique indexes, transactions, H2 limitation |
-| [system-design.md](docs/system-design.md) | <800w design summary (incl. AI isolation) |
-| [notifications.md](docs/notifications.md) | Lifecycle, email abstraction, scheduler, retries, failure logging, duplicate prevention, leave |
-| [google-calendar.md](docs/google-calendar.md) | OAuth flow, token handling, sync lifecycle, retries, failure isolation, testing |
-| [llm.md](docs/llm.md) | AI architecture, prompts, failure handling, testing |
+| `docs/architecture.md` | Layers, modules, AI, structure |
+| `docs/database.md` | Tables, migrations, indexes, time zone |
+| `docs/api.md` | All endpoints, auth, errors |
+| `docs/booking-concurrency.md` | Holds, unique indexes, transactions |
+| `docs/system-design.md` | Design summary |
+| `docs/notifications.md` | Lifecycle, email abstraction, scheduler, retries |
+| `docs/google-calendar.md` | OAuth flow, sync lifecycle, retries |
+| `docs/llm.md` | AI architecture, prompts, failure handling |
 
-## Testing
+---
 
-```bash
-cd backend
-mvn clean test   # 122 tests: auth 10, availability 9, doctor 11, additional 10, booking 29, concurrency 2, ai 17, notifications 19, calendar 14, pg-concurrency (skipped), app 1
-mvn compile
-```
-- H2 in tests (`create-drop`); PostgreSQL in prod (Flyway V1-V5, partial indexes). Concurrency tests document H2 limitation (see booking-concurrency.md); `PostgresBookingConcurrencyIT` requires `pgtest` profile.
-- Slot hold duration: 5 min test, 10 min prod via `SLOT_HOLD_DURATION_MINUTES`.
-- Notifications: 19 tests use `FakeEmailService` (no SMTP); Calendar: 14 tests use `FakeGoogleCalendarClient` (no Google credentials/network); AI uses `FakeLlmClient`.
-- Worker/reminder/sync schedulers are invoked directly for determinism.
+## Known Limitations
 
-## Upcoming
+- **Production email delivery** is currently not presented as a verified feature (the notification architecture exists; live delivery depends on the deployment's email configuration).
+- **Google Calendar** live OAuth depends on valid production credentials/configuration.
+- **AI** requires a configured AI provider/API key.
+- **Demo credentials** are for evaluation only.
 
-- Frontend: patient/doctor/admin portals
+---
 
-## License
-
-For academic use only.
-// & ".\.tools\pg\pgsql\bin\postgres.exe" -D ".\.tools\pgdata" - postger sql
-
-// & ".\.tools\start-backend.ps1" - backend(ye root folder mein chalana , backend mein nhi)
-
-// npm run dev - frontend
-
-
-//plsql entry - & ".\.tools\pg\pgsql\bin\psql.exe" -U postgres -d healthcare_appointments
-
-\dt
-
-5. Demo ke liye sabse useful view
-
-SELECT
-    pu.email AS patient,
-    du.email AS doctor,
-    a.appointment_start,
-    a.status
-FROM appointments a
-JOIN patients p ON p.id = a.patient_id
-JOIN users pu ON pu.id = p.user_id
-JOIN doctors d ON d.id = a.doctor_id
-JOIN users du ON du.id = d.user_id
-ORDER BY a.appointment_start DESC;
-press enter;
-
-6. Aur agar dekhna hai demo doctor ke slots/working hours
-
-SELECT
-    u.email,
-    dwh.day_of_week,
-    dwh.start_time,
-    dwh.end_time,
-    dwh.slot_duration_minutes,
-    dwh.active
-FROM doctor_working_hours dwh
-JOIN doctors d ON d.id = dwh.doctor_id
-JOIN users u ON u.id = d.user_id
-ORDER BY dwh.day_of_week;
-
-
-
+For academic/demonstration use only.
