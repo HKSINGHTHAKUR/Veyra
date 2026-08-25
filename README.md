@@ -2,6 +2,8 @@
 
 A full-stack healthcare appointment platform that connects patients, doctors, and administrators through the complete appointment lifecycle — discovery, booking, consultation, prescriptions, and AI-assisted pre/post-visit summaries.
 
+!!!CAN TAKE SOME TIME TO LOAD AS BACKEND IS ON RENDER AND ALSO IT BLOCKS SMTP PORTS!!!
+
 ## 🚀 Live Demo & Demo Accounts
 
 > **Demo:** Run the application locally using the setup instructions below.
