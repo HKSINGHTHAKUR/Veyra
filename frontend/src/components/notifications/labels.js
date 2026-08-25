@@ -28,6 +28,19 @@ export function statusLabel(status) {
   return STATUS_LABELS[status] || String(status || '').replace(/_/g, ' ')
 }
 
+/**
+ * User-facing status for the notification UI. Internal email-delivery details
+ * are not shown to end users: FAILED delivery renders no badge (the underlying
+ * event, e.g. the booking, is still valid), and SENT is shown as the neutral
+ * event-confirmed presentation. PENDING/PROCESSING stay visible as in-progress.
+ * The backend status is never changed — this is presentation only.
+ */
+export function userStatus(status) {
+  if (status === 'FAILED') return null
+  if (status === 'SENT') return 'CONFIRMED'
+  return status
+}
+
 export const TYPE_FILTER_OPTIONS = Object.entries(TYPE_LABELS).map(([value, label]) => ({
   value,
   label,

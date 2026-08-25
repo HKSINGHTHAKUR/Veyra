@@ -1,5 +1,5 @@
 import StatusBadge from './StatusBadge'
-import { typeLabel } from './notifications/labels'
+import { typeLabel, userStatus } from './notifications/labels'
 
 function formatWhen(instant) {
   if (!instant) return ''
@@ -30,15 +30,10 @@ export default function NotificationItem({ notification, onOpen }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <p className="text-sm font-semibold text-slate-900">{n.subject || typeLabel(n.type)}</p>
-            <StatusBadge status={n.status} />
+            <StatusBadge status={userStatus(n.status)} />
           </div>
           {n.body && (
             <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm text-slate-600">{n.body}</p>
-          )}
-          {n.status === 'FAILED' && (
-            <p className="mt-1 text-xs text-amber-700">
-              Delivery failed — your appointment is not affected.
-            </p>
           )}
           <p className="mt-2 text-2xs uppercase tracking-wide text-slate-400">
             {typeLabel(n.type)}

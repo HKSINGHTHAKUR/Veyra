@@ -6,7 +6,7 @@ import StatusBadge from '../StatusBadge'
 import { Skeleton } from '../LoadingSpinner'
 import { getNotification } from '../../api/notifications'
 import { toApiError } from '../../api/client'
-import { typeLabel } from './labels'
+import { typeLabel, userStatus } from './labels'
 
 function formatWhen(instant) {
   if (!instant) return ''
@@ -98,16 +98,9 @@ export default function NotificationDetail({ id, role, onClose }) {
       {!loading && !error && notification && (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge status={notification.status} />
+            <StatusBadge status={userStatus(notification.status)} />
             <span className="text-xs text-slate-500">{typeLabel(notification.type)}</span>
           </div>
-
-          {notification.status === 'FAILED' && (
-            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
-              Delivery failed — the email could not be sent. This does not change
-              your appointment itself.
-            </p>
-          )}
 
           {notification.body && (
             <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">
@@ -117,9 +110,6 @@ export default function NotificationDetail({ id, role, onClose }) {
 
           <p className="text-xs text-slate-400">
             {notification.createdAt ? `Received ${formatWhen(notification.createdAt)}` : ''}
-            {notification.status === 'SENT' && notification.sentAt && (
-              <> · Delivered {formatWhen(notification.sentAt)}</>
-            )}
           </p>
         </div>
       )}

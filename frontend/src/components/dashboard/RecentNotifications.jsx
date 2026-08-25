@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import StatusBadge from '../StatusBadge'
-import { typeLabel } from '../notifications/labels'
+import { typeLabel, userStatus } from '../notifications/labels'
 
 function formatWhen(instant) {
   if (!instant) return ''
@@ -39,7 +39,7 @@ export default function RecentNotifications({ notifications, inboxPath }) {
                 <p className="min-w-0 truncate text-sm font-medium text-slate-800">
                   {n.subject || typeLabel(n.type)}
                 </p>
-                <StatusBadge status={n.status} />
+                <StatusBadge status={userStatus(n.status)} />
               </div>
               <p className="mt-0.5 text-xs text-slate-400">
                 {typeLabel(n.type)}
