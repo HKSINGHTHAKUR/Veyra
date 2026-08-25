@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PageHeader from '../../components/PageHeader'
 import Button from '../../components/Button'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -23,6 +23,7 @@ export default function CalendarPage() {
   const [disconnectError, setDisconnectError] = useState(null)
   const [notice, setNotice] = useState(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const connectingRef = useRef(false)
 
   async function load() {
     setLoading(true)
@@ -41,6 +42,9 @@ export default function CalendarPage() {
   }, [])
 
   async function onConnect() {
+    // Guard against double-clicks / rapid re-entry before React state settles.
+    if (connectingRef.current) return
+    connectingRef.current = true
     setConnecting(true)
     setConnectError(null)
     setNotice(null)
@@ -54,9 +58,10 @@ export default function CalendarPage() {
       setConnectError(
         code === 403
           ? "You don't have permission to connect Google Calendar."
-          : 'Unable to connect Google Calendar right now.'
+          : 'Unable to connect Google Calendar. Please try again.'
       )
       setConnecting(false)
+      connectingRef.current = false
     }
   }
 
@@ -138,7 +143,7 @@ export default function CalendarPage() {
                   Disconnect Google Calendar
                 </Button>
               ) : (
-                <Button loading={connecting} onClick={onConnect}>
+                <Button loading={connecting} disabled={connecting || loading} onClick={onConnect}>
                   {connecting ? 'Preparing Google Calendar connection…' : 'Connect Google Calendar'}
                 </Button>
               )}

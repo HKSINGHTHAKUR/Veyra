@@ -50,25 +50,32 @@ public class CalendarService {
     private final SecureRandom secureRandom = new SecureRandom();
 
     /**
-     * Starts a connection for the authenticated user: persists a fresh single-use
-     * state and returns the Google consent URL embedding it.
+     * Starts a connection for the authenticated user. If this user already has a
+     * still-valid OAuth state, that state is reused so duplicate/rapid Connect
+     * clicks never invalidate an active flow (the old behaviour of deleting all
+     * prior states first caused exactly that). Only expired states are cleaned up.
      */
     @Transactional
     public String startConnection(User user) {
-        // One live transaction per user — drop any previous unused state
-        oauthStateRepository.deleteByUserId(user.getId());
+        Instant now = Instant.now();
 
+        CalendarOauthState state = oauthStateRepository
+                .findFirstByUserIdAndExpiresAtAfterOrderByExpiresAtDesc(user.getId(), now)
+                .orElseGet(() -> {
+                    CalendarOauthState row = new CalendarOauthState();
+                    row.setState(randomHex());
+                    row.setUser(user);
+                    row.setExpiresAt(now.plus(STATE_TTL_MINUTES, ChronoUnit.MINUTES));
+                    return oauthStateRepository.save(row);
+                });
+
+        return googleClient.buildAuthorizationUrl(state.getState());
+    }
+
+    private String randomHex() {
         byte[] bytes = new byte[STATE_BYTES];
         secureRandom.nextBytes(bytes);
-        String state = HexFormat.of().formatHex(bytes);
-
-        CalendarOauthState row = new CalendarOauthState();
-        row.setState(state);
-        row.setUser(user);
-        row.setExpiresAt(Instant.now().plus(STATE_TTL_MINUTES, ChronoUnit.MINUTES));
-        oauthStateRepository.save(row);
-
-        return googleClient.buildAuthorizationUrl(state);
+        return HexFormat.of().formatHex(bytes);
     }
 
     /**
@@ -79,16 +86,21 @@ public class CalendarService {
     @Transactional
     public User consumeState(String state) {
         if (state == null || state.isBlank()) {
+            log.warn("OAuth callback rejected: state missing");
             throw new BadRequestException("Invalid or expired OAuth state");
         }
         CalendarOauthState row = oauthStateRepository.findByState(state)
-                .orElseThrow(() -> new BadRequestException("Invalid or expired OAuth state"));
+                .orElseThrow(() -> {
+                    log.warn("OAuth callback rejected: state not found");
+                    return new BadRequestException("Invalid or expired OAuth state");
+                });
         if (row.getExpiresAt().isBefore(Instant.now())) {
+            log.warn("OAuth callback rejected: state expired (user {})", row.getUser().getId());
             oauthStateRepository.delete(row);
             throw new BadRequestException("Invalid or expired OAuth state");
         }
         User user = row.getUser();
-        oauthStateRepository.delete(row); // single-use
+        oauthStateRepository.delete(row); // single-use — a replayed callback fails
         return user;
     }
 
