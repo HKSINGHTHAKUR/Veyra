@@ -9,6 +9,32 @@ import { toApiError } from '../../api/client'
 
 const ROLE_HOME = { PATIENT: '/patient', DOCTOR: '/doctor', ADMIN: '/admin' }
 
+// Public demo accounts (seeded in local dev). Selecting one only autofills the
+// form — the normal backend login still validates the credentials.
+const DEMO_ACCOUNTS = [
+  {
+    portal: 'PATIENT',
+    email: 'patient@healthcare.dev',
+    password: 'Patient@Dev1',
+    label: 'Patient Demo',
+    hint: 'Book and manage appointments',
+  },
+  {
+    portal: 'DOCTOR',
+    email: 'doctor@healthcare.dev',
+    password: 'Doctor@Dev1',
+    label: 'Doctor Demo',
+    hint: 'Manage appointments and consultations',
+  },
+  {
+    portal: 'ADMIN',
+    email: 'admin@healthcare.dev',
+    password: 'Admin@Dev1',
+    label: 'Admin Demo',
+    hint: 'Manage doctors and operations',
+  },
+]
+
 const PORTALS = [
   {
     id: 'PATIENT',
@@ -94,6 +120,13 @@ export default function LoginPage() {
   }
 
   const selected = PORTALS.find((p) => p.id === portal)
+
+  function applyDemo(demo) {
+    setPortal(demo.portal)
+    setEmail(demo.email)
+    setPassword(demo.password)
+    setError(null)
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -186,6 +219,34 @@ export default function LoginPage() {
                 </button>
               )
             })}
+          </div>
+
+          {/* Demo accounts — autofill only; the Sign In button still authenticates. */}
+          <div className="mt-6 rounded-card border border-dashed border-slate-300 bg-white p-4">
+            <p className="text-sm font-semibold text-slate-900">Demo Accounts</p>
+            <p className="mt-0.5 text-xs text-slate-500">Click an account to autofill its login details.</p>
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {DEMO_ACCOUNTS.map((d) => {
+                const active = portal === d.portal && email === d.email && password === d.password
+                return (
+                  <button
+                    key={d.portal}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => applyDemo(d)}
+                    className={cn(
+                      'rounded-lg border px-3 py-2 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1',
+                      active
+                        ? 'border-primary-400 bg-primary-50'
+                        : 'border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
+                    )}
+                  >
+                    <span className="block text-xs font-semibold text-slate-900">{d.label}</span>
+                    <span className="mt-0.5 block text-[11px] leading-relaxed text-slate-500">{d.hint}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4" noValidate>
