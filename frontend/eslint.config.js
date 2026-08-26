@@ -20,6 +20,7 @@ export default [
         clearInterval: 'readonly',
         setTimeout: 'readonly',
         IntersectionObserver: 'readonly',
+        fetch: 'readonly',
       },
     },
     settings: { react: { version: '18.3' } },
