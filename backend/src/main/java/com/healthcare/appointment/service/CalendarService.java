@@ -42,7 +42,7 @@ import java.util.HexFormat;
 public class CalendarService {
 
     private static final int STATE_BYTES = 32;           // 256-bit
-    private static final long STATE_TTL_MINUTES = 10;    // short-lived
+    private static final long STATE_TTL_MINUTES = 30;    // generous for consent flow
 
     private final CalendarCredentialRepository credentialRepository;
     private final CalendarOauthStateRepository oauthStateRepository;
