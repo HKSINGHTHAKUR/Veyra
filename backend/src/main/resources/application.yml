@@ -79,6 +79,16 @@ app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:5173}
 
+  mail:
+    # Active email provider: resend (default, HTTPS API) | smtp (legacy, local dev)
+    provider: ${MAIL_PROVIDER:resend}
+
+  resend:
+    # Email transport via Resend HTTPS API (no SMTP). Key comes from env only.
+    api-key: ${RESEND_API_KEY:}
+    from-email: ${RESEND_FROM_EMAIL:}
+    from-name: ${RESEND_FROM_NAME:Veyra}
+
 server:
   port: ${PORT:8080}
   address: 0.0.0.0

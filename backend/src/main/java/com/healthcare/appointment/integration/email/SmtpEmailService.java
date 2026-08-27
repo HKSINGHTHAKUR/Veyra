@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @Profile("!test")
+@ConditionalOnProperty(name = "app.mail.provider", havingValue = "smtp")
 @RequiredArgsConstructor
 public class SmtpEmailService implements EmailService {
 
@@ -24,7 +26,7 @@ public class SmtpEmailService implements EmailService {
     @Override
     public void send(Notification notification) throws EmailException {
         try {
-            String to = notification.getUser().getEmail();
+            String to = Recipients.resolve(notification.getUser().getEmail());
             if (to == null || to.isBlank()) throw new EmailException("Recipient email missing");
 
             MimeMessage message = mailSender.createMimeMessage();
