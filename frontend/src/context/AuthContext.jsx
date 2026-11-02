@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import {
   clearSession,
   getStoredToken,
@@ -69,6 +69,21 @@ export function AuthProvider({ children }) {
 
   const role = user?.role || null
 
+  const logout = useCallback(() => {
+    clearSession()
+    setToken(null)
+    setUser(null)
+  }, [])
+
+  // Log the user out when an expired token triggers a session expiry event
+  // from the Axios 401 interceptor. This keeps auth state synchronized with
+  // the local storage without a hard page navigation.
+  useEffect(() => {
+    const onSessionExpiry = () => logout()
+    window.addEventListener('veyra-session-expired', onSessionExpiry)
+    return () => window.removeEventListener('veyra-session-expired', onSessionExpiry)
+  }, [logout])
+
   const applySession = useCallback((newToken, newUser) => {
     storeSession(newToken, newUser)
     setToken(newToken)
@@ -133,12 +148,6 @@ export function AuthProvider({ children }) {
       /* keep persisted profile; 401 is handled globally in the axios layer */
     }
   }, [role])
-
-  const logout = useCallback(() => {
-    clearSession()
-    setToken(null)
-    setUser(null)
-  }, [])
 
   const value = useMemo(
     () => ({
