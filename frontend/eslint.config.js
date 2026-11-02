@@ -16,6 +16,8 @@ export default [
         document: 'readonly',
         localStorage: 'readonly',
         atob: 'readonly',
+        btoa: 'readonly',
+        CustomEvent: 'readonly',
         setInterval: 'readonly',
         clearInterval: 'readonly',
         setTimeout: 'readonly',

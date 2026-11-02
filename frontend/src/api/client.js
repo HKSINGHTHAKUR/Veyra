@@ -47,24 +47,55 @@ client.interceptors.request.use((config) => {
 })
 
 /**
- * 401 handling: session is invalid/expired -> hard logout once, then send the
- * user to /login. A flag prevents redirect loops when /login itself 401s.
+ * Triggered when a stored token has expired or is otherwise unparseable.
+ * Clears the local session and broadcasts a custom event so the AuthContext
+ * can log the user out cleanly. The interceptor itself performs no
+ * navigation: it must not disturb React Router's history stack or a pending
+ * Back/Forward traversal.
+ */
+export function handleSessionExpiry(expiredToken) {
+  // Don't clear a newer session established after this 401 was observed.
+  if (expiredToken !== undefined && expiredToken !== getStoredToken()) return
+  clearSession()
+  window.dispatchEvent(new CustomEvent('veyra-session-expired'))
+}
+
+/**
+ * Client-side expiry check mirroring the one used during hydration.
+ * 401s on a token that is still structurally valid (e.g. a transient
+ * backend error) do not force a logout; an expired/invalid token does.
+ */
+function isExpiredToken(token) {
+  try {
+    const part = token.split('.')[1]
+    if (!part) return true
+    const base64 = part.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+    const payload = JSON.parse(atob(padded))
+    return !payload || typeof payload.exp !== 'number' || payload.exp * 1000 <= Date.now()
+  } catch {
+    return true
+  }
+}
+
+/**
+ * 401 handling: the stored token is expired or unparseable -> clear it and
+ * broadcast so the AuthContext logs the user out. No navigation happens here;
+ * the AuthContext remains the single source of truth for auth state.
  *
  * 403 is deliberately NOT intercepted globally: pages decide how to present an
  * unauthorized state (the backend is the real security boundary).
  */
-let handling401 = false
 client.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status
     const url = error?.config?.url || ''
     const isAuthCall = url.includes('/auth/login') || url.includes('/auth/register')
+    const token = getStoredToken()
 
-    if (status === 401 && !isAuthCall && !handling401) {
-      handling401 = true
-      clearSession()
-      window.location.assign('/login?session=expired')
+    if (status === 401 && !isAuthCall && token && isExpiredToken(token)) {
+      handleSessionExpiry(token)
     }
     return Promise.reject(error)
   }

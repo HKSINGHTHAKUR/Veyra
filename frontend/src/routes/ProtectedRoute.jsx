@@ -16,7 +16,7 @@ export default function ProtectedRoute({ allow = [], children }) {
   const location = useLocation()
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />
+    return <Navigate to="/login?session=expired" replace state={{ from: location.pathname }} />
   }
 
   if (allow.length > 0 && !allow.includes(role)) {
